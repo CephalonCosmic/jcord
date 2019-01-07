@@ -40,11 +40,35 @@ class MessageMethods {
     });
   }
 
-  /*async multipleDelete(limit) {
-    if (!limit || isNaN(limit)) limit = 50;
+  /**
+   * Delete multiple messages
+   * @param {Array|Number} limitOrArray The amount of messages to delete, or an array of messages to delete
+   * @returns {Promise<Array<Snowflake>|Array<Message>>}
+   */
 
-    //let messages = await 
-  }*/
+  async multipleDelete(limitOrArray) {
+    if (Array.isArray(limitOrArray)) {
+      return this.client.rest.request("POST", ENDPOINTS.CHANNEL_BULKDELETE(this.id), {
+        data: {
+          messages: limitOrArray
+        }
+      }).then(() => {
+        return limitOrArray;
+      });
+    } else if (!isNaN(limitOrArray)) {
+      let messages = await this.multipleFetch({ limit: limitOrArray });
+
+      return this.client.rest.request("POST", ENDPOINTS.CHANNEL_BULKDELETE(this.id), {
+        data: {
+          messages: messages.map(msg => msg.id)
+        }
+      }).then(() => {
+        return messages;
+      });
+    } else {
+      return this.client.emit('error', new Error('Invalid array or amount of messages to delete!'));
+    };
+  }
 
   /**
    * Fetch a single message

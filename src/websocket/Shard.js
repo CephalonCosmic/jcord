@@ -1,4 +1,5 @@
 const Websocket = require('ws');
+const os = require('os');
 
 const Ready = require('../events/Ready');
 const GuildCreate = require('../events/GuildCreate');
@@ -9,7 +10,7 @@ class Shard {
   constructor(client, shard) {
     this.client = client;
     this.shard = shard;
-    this.ws = new Websocket('wss://gateway.discord.gg/?v=6&encoding=json');
+    this.ws = new Websocket(`${this.client.gatewayURL}/?v=6&encoding=json`);
     this.lastHeartbeatAck = 0;
     this.lastHeartbeatSentOrIdentify = 0;
     this.totalMemberCountOfGuildMemberChunk = 0;
@@ -17,6 +18,8 @@ class Shard {
     this.interval = null;
     this.heartbeatInterval = null;
     this.status = false;
+    this.shardData = { id: this.shard, latency: Infinity };
+    this.shardStatus = null;
   }
 
   connect() {
@@ -26,6 +29,10 @@ class Shard {
   onEvent(packet) {
     switch(packet.t) {
       case 'READY': {
+        if (!packet.d.guilds.length) {
+          return new Ready(this, packet).execute();
+        };
+
         new Ready(this, packet);
         break;
       }
@@ -53,7 +60,6 @@ class Shard {
 
       switch(packet.op) {
         case 10: {
-          this.lastHeartbeatAck = Date.now();
           this.startHeartbeat(packet.d.heartbeat_interval);
           break;
         }
@@ -65,23 +71,25 @@ class Shard {
 
         case 11: {
           this.lastHeartbeatAck = Date.now();
+          this.shardData.latency = this.lastHeartbeatAck - this.lastHeartbeatSentOrIdentify;
           break;
         }
 
         case 9: {
-          console.log(packet.d);
-          this.client.emit('debug', `Received Opcode 9, will reconnect Shard ${this.shard}`);
+          this.client.emit('debug', `Shard: ${this.shard} received an Opcode 9 ! We will try to reconnect`);
           if (!packet.d) {
-            this.send({ op: 2, d: {
-                token: this.client.token,
-                properties: {
-                  $os: 'jcord',
-                  $browser: 'jcord',
-                  $device: 'jcord'
-                },
-                shard: [this.shard, this.client.shards]
-              }
-            });  
+            setTimeout(() => {
+              this.send({ op: 2, d: {
+                  token: this.client.token,
+                  properties: {
+                    $os: os.platform(),
+                    $browser: 'JCord',
+                    $device: os.type() === 'Windows_NT' ? 'Windows' : os.type()
+                  },
+                  shard: [this.shard, this.client.shards]
+                }
+              });  
+            }, 2500)
           };
           break;
         }
@@ -90,7 +98,9 @@ class Shard {
   }
 
   startHeartbeat(interval) {
-    this.client.emit('debug', `Sending shard: ${this.shard}`);
+    this.client.emit('debug', `Starting shard: ${this.shard}`);
+    this.lastHeartbeatSentOrIdentify = Date.now();
+    this.send({ op: 1, d: null });
     this.send({ op: 2, d: {
         token: this.client.token,
         properties: {

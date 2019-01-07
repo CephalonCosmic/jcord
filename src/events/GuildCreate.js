@@ -11,9 +11,7 @@ class Ready {
   }
 
   execute() {
-    this.packet.d.shard = { 
-      id: this.gateway.shard
-    };
+    this.packet.d.shard = this.gateway.shardData;
     this.gateway.client.guilds.set(this.packet.d.id, new Guild(this.gateway.client, this.packet.d));
     if (this.gateway.client.getAllMembers) {
       this.gateway.client.emit('debug', 'Client#getAllMembers was on! Will request all guild members');
@@ -29,7 +27,8 @@ class Ready {
       this.gateway.client.emit('GUILD_CREATE', guild);
 
       if (!this.gateway.client.getAllMembers) {
-        this.gateway.client.emit('SHARD_READY', { id: this.gateway.shard });
+        this.gateway.shardStatus = 'ready';
+        this.gateway.client.emit('SHARD_READY', this.packet.d.shard);
         this.gateway.client.connectedShards.push(this.gateway.shard);
       };
 

@@ -1,3 +1,5 @@
+"use strict";
+
 const EventEmitter = require('events').EventEmitter;
 const Shard = require('../websocket/Shard');
 const Store = require('../utils/Store');
@@ -17,7 +19,7 @@ class Client extends EventEmitter {
     this.firstShardSent = false;
     this.getAllMembers = options.getAllMembers || false;
 
-    if (this.shards < 0 || (typeof shards === 'string' && this.shards !== 'auto')) this.emit('error', new Error('Invalid amount of shards! Must be more than one or use \'auto\''));
+    if (this.shards < 1 || (typeof this.shards === 'string' && this.shards !== 'auto')) this.emit('error', new Error('Invalid amount of shards! Must be more than one or use \'auto\''));
 
     this.token = null;
     this.channels = new Store();
@@ -26,6 +28,7 @@ class Client extends EventEmitter {
 
     this.firstShardSent = false;
     this.rest = new RestHandler(this);
+    this.gatewayURL = null;
     Object.defineProperty(this, 'connectedShards', { value: [] });
   }
 
@@ -42,17 +45,20 @@ class Client extends EventEmitter {
   async start(token) {
     this.token = token;
 
+    let data = await this.rest.request("GET", '/gateway/bot');
+
+    this.gatewayURL = data.data.url;
+
     if (this.shards === 'auto') {
-      let res = await this.rest.request('GET', '/gateway/bot');
+      let res = await this.rest.request("GET", '/gateway/bot');
 
       this.shards = res.data.shards;
     };
 
-    for (var i = 0; i < this.shards; i++) {
-      let num = i;
+    for (let i = 0; i < this.shards; i++) {
       setTimeout(() => {
-        new Shard(this, num).connect();
-      }, num * 5000);
+        new Shard(this, i).connect();
+      }, i * 6500);
     };
   }
 };

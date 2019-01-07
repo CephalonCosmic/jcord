@@ -22,13 +22,14 @@ class Ready {
     this.gateway.client.guilds.set(guild.id, guild);
             
     if (this.gateway.totalMemberCountOfGuildMemberChunk === this.gateway.totalMemberCount && this.gateway.status !== 'ready') {
-      this.gateway.client.emit('SHARD_READY', ({ id: this.gateway.shard }));
+      this.gateway.client.emit('SHARD_READY', this.gateway.shardData);
       this.gateway.client.connectedShards.push(this.gateway.shard);
+      this.gateway.shardStatus = 'ready';
 
       if (this.gateway.client.connectedShards.length === this.gateway.client.shards) {
         this.gateway.client.startTime = Date.now();
-        this.gateway.status = 'ready';
         this.gateway.client.emit('READY')
+        this.gateway.status = 'ready';
       };
     }
 

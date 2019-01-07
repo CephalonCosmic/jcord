@@ -18,6 +18,11 @@ class Ready {
     this.user = this.packet.d.user;
 
     if (!this.gateway.guildLength) {
+      this.gateway.client.connectedShards.push(this.gateway.shard);
+      return this.gateway.client.emit('SHARD_READY', { id: this.gateway.shard, latency: this.lastHeartbeatAck - this.lastHeartbeatSentOrIdentify });
+    }
+
+    if (!this.gateway.guildLength) {
       console.warn('Bot logged in was in 0 guilds! This is not recommended, caching will be disabled! Please add this bot in a guild!');
       this.gateway.client.emit('READY');
     }
