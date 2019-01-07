@@ -14,8 +14,8 @@ Currently no Documentation for Rewrite!
 const JCord = require('jcord');
 
 class MyBot extends JCord.Client {
-  constructor(token, options) {
-    super(token, options);
+  constructor(options) {
+    super(options);
     this.prefix = '!';
   }
 };
