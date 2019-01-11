@@ -8,6 +8,20 @@ class Store extends Map {
   }
 
   /**
+   * Deletes a key from the Store
+   * @param {String} key 
+   * @returns {Store<Value>}
+   */
+
+  delete(key) {
+    if (!super.has(key)) return undefined;
+    let result = super.get(key);
+
+    super.delete(key);
+    return result;
+  }
+
+  /**
    * Return all objects that makes the function return true
    * @param {Function} func A function that takes an object and returns true if it matches
    * @returns {Array<Class>}

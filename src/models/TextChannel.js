@@ -1,7 +1,7 @@
 "use strict";
 
 const GuildChannel = require('./GuildChannel');
-const MessageMethods = require('../helpers/textchannel/MessageMethods');
+const MessageMethods = require('../helpers/channel/MessageMethods');
 
 /**
  * @extends GuildChannel Represens a Guild Text Channel.

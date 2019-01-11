@@ -5,6 +5,7 @@ const Ready = require('../events/Ready');
 const GuildCreate = require('../events/GuildCreate');
 const GuildMembersChunk = require('../events/GuildMembersChunk');
 const MessageCreate = require('../events/MessageCreate');
+const ChannelCreate = require('../events/ChannelCreate');
 
 class Shard {
   constructor(client, shard) {
@@ -28,29 +29,29 @@ class Shard {
 
   onEvent(packet) {
     switch(packet.t) {
-      case 'READY': {
+      case 'READY':
         if (!packet.d.guilds.length) {
           return new Ready(this, packet).execute();
         };
 
         new Ready(this, packet);
         break;
-      }
 
-      case 'GUILD_CREATE': {
+      case 'GUILD_CREATE':
         new GuildCreate(this, packet).execute();
         break;
-      }
 
-      case 'GUILD_MEMBERS_CHUNK': {
+      case 'GUILD_MEMBERS_CHUNK':
         new GuildMembersChunk(this, packet).execute();
         break;
-      }
 
-      case 'MESSAGE_CREATE': {
+      case 'MESSAGE_CREATE':
         new MessageCreate(this, packet).execute();
         break;
-      }
+
+      case 'CHANNEL_CREATE':
+        new ChannelCreate(this, packet).execute();
+        break;
     };
   }
 

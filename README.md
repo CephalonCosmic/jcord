@@ -1,14 +1,14 @@
-# JCord Rewrite
-JCord Rewrite was created because the main JCord had caching problems which still can't be resolved. And that's why JCord Rewrite was created to re-create JCord in a much better way  
+# JCord
+This repo was made to continue the outdated repo of [jcord](https://github.com/Boujee0040/jcord). This is also more updated and has sharding and more features!
 
 ## Installation
-`$ npm install --save KevvyCodes/jcord-rewrite`
+`$ npm install --save KevvyCodes/jcord`
 
 ## Documentation
-Currently no Documentation for Rewrite!
+Currently no Documentation for this version!
 
 ## Expected Usage
-**WARNING: THIS USAGE ONLY WORKS FOR JCORD-REWRITE AND NOT THE NON-UPDATED ONE!**
+**WARNING: THIS USAGE ONLY WORKS FOR THIS JCORD AND NOT THE NON-UPDATED ONE!**
 
 ```js
 const JCord = require('jcord');
@@ -42,19 +42,50 @@ client.on('MESSAGE_CREATE', (msg) => {
 });
 
 client.start('BOT TOKEN');
+```  
+
+**HERE IS AN EXAMPLE OF THE COMMAND CREATOR**  
+```js
+const { CommandCreator } = require('jcord');
+const client = new CommandCreator({ prefix: '!' });
+
+// We can register the commands on each shard so that we are sure it is being loaded/overwritten every time a shard is complete. You can also make this load without waiting for every shard to be finished by moving the code outside of the "SHARD_READY" event
+
+client.on('SHARD_READY', () => {
+  client.registerCommand('ping', (msg) => {
+    msg.channel.message.create(`Pong! Took: \`${msg.channel.guild.shard.latency}ms\``)
+  }, { guildOnly: true });
+
+  client.registerCommand('greet', (msg) => {
+    let user = msg.mentions[0];
+
+    if (!user) return msg.channel.message.create('Please give a user to greet!');
+
+    msg.channel.message.create(`${user}, ${msg.author} is greeting you! :wave:`);
+  }, { guildOnly: true });
+
+  client.registerCommand('random-number', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], { aliases: [ 'randomNum' ] });
+});
+
+client.on('READY', () => console.log(`Client is now logged in! (${client.user.tag} - ${client.user.id})`));
+
+client.start('My Bot Token');
 ```
 
 ## To-Do List
 - [x] Put events into seperate files  
 - [x] Add Sharding Support ( Still needs more testing )  
 - [x] Add shard latency support
-- [ ] Finish all methods
+- [ ] Finish all methods  
+- [x] Simple bot creator, **not complete but usable**
 
 ## Problems
 - Caching Problems ( Sometimes )  
 - Slow login ( Due to the delay )  
 
 ## Notes
+- About the Command Creator feature, we're using cache to create commands, but for the guild prefix, you need the package `depo` installed. If you guys have a much better suggestion for the "database", please open an issue. We need one that is easy to install, create.
+
 - Sharding is implemented, but might still have issues. We also give a 6.5 Second Delay for shard, meaning Once shard 0 is sent, we will do a timeout of 6.5 seconds before sending a new shard. If the shard fails the connect, it will try to login once more with a delay of 2.5 seconds.  
 
 - Our caching is having slight ( real slight ) problems, and we're trying our best to fix this.  

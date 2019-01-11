@@ -4,7 +4,7 @@ class User {
 
     this.avatar = data.avatar || null;
     this.avatarURL = this.avatar ? (this.avatar.startsWith('a_') ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.gif` : `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}`) : `https://cdn.discordapp.com/embed/avatars/${data.discriminator % 5}.png`;
-    this.bot = data.bot;
+    this.bot = Boolean(data.bot);
     this.discriminator = data.discriminator;
     this.id = data.id;
     this.username = data.username;
