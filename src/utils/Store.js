@@ -103,13 +103,6 @@ class Store extends Map {
    */
 
   set(key, value) {
-    if(!key) {
-      value = key;
-      key = value.id;
-    }
-    while(this.size > this.limit) {
-      super.delete(this.firstKey);
-    }
     super.set(key, value);
     return value;
   }

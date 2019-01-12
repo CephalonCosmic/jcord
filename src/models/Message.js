@@ -13,11 +13,25 @@ class Message {
     this.embeds = data.embeds;
     this.id = data.id;
     this.mentionedEveryone = data.mention_everyone;
-    this.mentions = data.mentions;
+    this.mentions = data.mentions.map(user => {
+      return this.client.users.get(user.id);
+    });
     this.pinned = data.pinned;
     this.roleMentions = data.mention_roles;
     this.tts = data.tts;
     this.type = data.type;
+  }
+
+  get channelMentions() {
+    var channels = [];
+    const regex = /<#(\d+)>/g;
+    let result;
+
+    while ((result = regex.exec(this.content)) !== null) {
+      channels.push(this.client.channels.get(result[1]));
+    } 
+
+    return channels;
   }
 
   get member() {

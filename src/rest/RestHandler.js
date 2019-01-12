@@ -6,6 +6,14 @@ class RequestHandler {
       this.client = client;
   }
 
+  /**
+   * Makes a rest request
+   * @param {String} method The method of the rest request
+   * @param {String} url The url to do a request
+   * @param {String} [data] The data for the request
+   * @returns {Object<Data>}
+   */
+
   async request(method, url, data = {}) {
     var methods = ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'];
 

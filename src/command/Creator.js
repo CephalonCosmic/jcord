@@ -14,14 +14,17 @@ class CommandCreator extends Client {
     let depo = null;
 
     if (this.customPrefix) {
-      try { 
+      try {
         require('depo');
         depo = true;
-        this.db = new (require('depo')).Database();
+        this.db = new (require('depo')).Database({ name: 'jcord' });
       } catch(error) {
-        console.log(error.message)
         depo = null;
-        this.emit('error', new Error('If you would want to get the current guild prefix,\nplease install "depo"'));
+        this.emit('error', new Error(`
+If you would want to get the current guild prefix,
+please install "depo"
+Note: Please install the master version by doing:
+"npm install boltxyz/depo"`));
       }
     }
     
@@ -43,6 +46,52 @@ class CommandCreator extends Client {
 
       if (!commandData) return;
 
+      let argsData = {};
+
+      for (var i = 0; i < commandData.args.length; i++) {
+        if (commandData.args[i].type === 'number' && (!args[i] || isNaN(args[i]))) {
+          return msg.channel.createMessage(commandData.args[i].prompt);
+        } else if (commandData.args[i].type === 'string' && (!args[i] || typeof args[i] !== 'string')) {
+          return msg.channel.createMessage(commandData.args[i].prompt);
+        } else if (commandData.args[i].type === 'user') {
+          let filteredTypes = commandData.args.filter(data => data.type === 'user');
+          
+          for (var c = 0; c < filteredTypes.length; c++) {
+            if (!args[i] || !msg.mentions[c]) {
+              return msg.channel.createMessage(filteredTypes[c].prompt);
+            }
+          };
+        } else if (commandData.args[i].type === 'channel') {
+          let filteredTypes = commandData.args.filter(data => data.type === 'channel');
+          
+          for (var c = 0; c < filteredTypes.length; c++) {
+            if (!args[i] || !msg.channelMentions[c]) {
+              return msg.channel.createMessage(filteredTypes[c].prompt);
+            }
+          };
+        } else if (commandData.args[i].type === 'role') {
+          let filteredTypes = commandData.args.filter(data => data.type === 'role');
+          
+          for (var c = 0; c < filteredTypes.length; c++) {
+            if (!args[i] || !msg.roleMentions[c]) {
+              return msg.channel.createMessage(filteredTypes[c].prompt);
+            }
+          };
+        } else if (commandData.args[i].type === 'user_id' && (!args[i] || this.users.get(args[i]))) {
+          return msg.channel.createMessage(commandData.args[i].prompt);
+        } else if (commandData.args[i].type === 'channel_id' && (!args[i] || this.channels.get(args[i]))) {
+          return msg.channel.createMessage(commandData.args[i].prompt);
+        } else if (commandData.args[i].type === 'role_id' && (!args[i] || msg.channel.guild && msg.channel.guild.roles.get(args[i]))) {
+          return msg.channel.createMessage(commandData.args[i].prompt);
+        } else if (commandData.args[i].type === 'guild_id' && (!args[i] || this.guilds.get(args[i]))) {
+          return msg.channel.createMessage(commandData.args[i].prompt);
+        }
+      };
+
+      for (var i = 0; i < commandData.args.length; i++) {
+        argsData[commandData.args[i].key] = args[i];
+      };
+
       if (Array.isArray(commandData.reply)) {
         commandData.reply = commandData.reply[Math.floor(Math.random() * commandData.reply.length)];
       } else if (typeof commandData.reply === 'object' && reply.hasOwnProperty('reply')) {
@@ -56,10 +105,9 @@ class CommandCreator extends Client {
       };
 
       if (commandData.guildOnly && !msg.channel.guild || commandData.dmOnly && msg.channel.type !== 'dm') return;
-      if (commandData.ownerOnly && !this.owners.includes(msg.author.id)) return msg.channel.message.create(`This is an owner only command!`);
-      if (!args.length && commandData.argsRequired) return msg.channel.message.create(`You are missing a few arguments!`);
+      if (commandData.ownerOnly && !this.owners.includes(msg.author.id)) return msg.channel.createMessage(`This is an owner only command!`);
 
-      return typeof commandData.reply === 'function' ? commandData.reply.bind(null, msg, args)() : msg.channel.message.create(commandData.reply);
+      return typeof commandData.reply === 'function' ? commandData.reply.bind(null, msg, argsData)() : msg.channel.createMessage(commandData.reply);
     });
   }
 
@@ -106,7 +154,7 @@ class CommandCreator extends Client {
       return this.emit('error', new Error('Parameter <name> was not a string!'));
 
     let commandData = {
-      argsRequired: options.argsRequired || false,
+      args: options.args || [],
       guildOnly: options.guildOnly || false, 
       hidden: options.hidden || false, 
       description: options.description || 'A Command', 
@@ -117,6 +165,18 @@ class CommandCreator extends Client {
     };
 
     name = name.toLowerCase();
+
+    for (var i = 0; i < commandData.args.length; i++) {
+      if ((typeof commandData.args[i] !== 'object' && !Array.isArray(commandData.args[i])) ||
+      !commandData.args[i].hasOwnProperty('key') ||
+      !commandData.args[i].hasOwnProperty('prompt') ||
+      !commandData.args[i].hasOwnProperty('type')) {
+        return this.emit('error', new Error(`The argument options at position ${i} was invalid!`));
+      } else {
+        commandData.args[i].key = commandData.args[i].key.toLowerCase();
+        commandData.args[i].type = commandData.args[i].type.toLowerCase();
+      }
+    };
 
     if (Array.isArray(reply)) {
       this._commands.set(name, commandData);

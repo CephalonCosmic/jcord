@@ -35,9 +35,9 @@ client.on('MESSAGE_CREATE', (msg) => {
   if (msg.content.indexOf(client.prefix) !== 0) return;
 
   if (cmd === 'ping') {
-    return msg.channel.message.create(`Pong! Shard: ${msg.channel.guild.shard.id} Took \`${msg.channel.guild.shard.latency}ms\``);
+    return msg.channel.createMessage(`Pong! Shard: ${msg.channel.guild.shard.id} Took \`${msg.channel.guild.shard.latency}ms\``);
   } else if (cmd === 'uptime') {
-    return msg.channel.message.create(`My current uptime in ms: \`${client.uptime}ms\``);
+    return msg.channel.createMessage(`My current uptime in ms: \`${client.uptime}ms\``);
   }
 });
 
@@ -53,16 +53,22 @@ const client = new CommandCreator({ prefix: '!' });
 
 client.on('SHARD_READY', () => {
   client.registerCommand('ping', (msg) => {
-    msg.channel.message.create(`Pong! Took: \`${msg.channel.guild.shard.latency}ms\``)
+    msg.channel.createMessage(`Pong! Took: \`${msg.channel.guild.shard.latency}ms\``)
   }, { guildOnly: true });
 
-  client.registerCommand('greet', (msg) => {
-    let user = msg.mentions[0];
-
-    if (!user) return msg.channel.message.create('Please give a user to greet!');
-
-    msg.channel.message.create(`${user}, ${msg.author} is greeting you! :wave:`);
-  }, { guildOnly: true });
+  // This command uses our special feature, which is the args handling feature!
+  client.registerCommand('greet', (msg, { greeted_user }) => {
+    msg.channel.createMessage(`${greeted_user}, ${msg.author} is greeting you! :wave:`);
+  }, {
+    guildOnly: true,
+    args: [
+      {
+        key: 'greeted_user',
+        type: 'User',
+        prompt: 'Please mention a user to greet!'
+      }
+    ]
+  });
 
   client.registerCommand('random-number', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], { aliases: [ 'randomNum' ] });
 });
@@ -84,7 +90,7 @@ client.start('My Bot Token');
 - Slow login ( Due to the delay )  
 
 ## Notes
-- About the Command Creator feature, we're using cache to create commands, but for the guild prefix, you need the package `depo` installed. If you guys have a much better suggestion for the "database", please open an issue. We need one that is easy to install, create.
+- About the Command Creator feature, we're using cache to create commands, but for the guild prefix, you need the package `depo` installed. If you guys have a much better suggestion for the "database", please open an issue. We need one that is easy to install, create. **YOU NEED TO INSTALL THE MASTER VERSION OF DEPO AND NOT THE STABLE ONE, TO INSTALL THE MASTER VERSION, TYPE `npm install boltxyz/depo`**
 
 - Sharding is implemented, but might still have issues. We also give a 6.5 Second Delay for shard, meaning Once shard 0 is sent, we will do a timeout of 6.5 seconds before sending a new shard. If the shard fails the connect, it will try to login once more with a delay of 2.5 seconds.  
 
