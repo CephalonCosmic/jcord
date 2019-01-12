@@ -15,8 +15,6 @@ class Ready {
   }
 
   execute() {
-    this.user = this.packet.d.user;
-
     if (!this.gateway.guildLength) {
       this.gateway.client.connectedShards.push(this.gateway.shard);
       return this.gateway.client.emit('SHARD_READY', { id: this.gateway.shard, latency: this.lastHeartbeatAck - this.lastHeartbeatSentOrIdentify });
