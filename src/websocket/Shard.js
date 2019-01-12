@@ -52,6 +52,10 @@ class Shard {
       case 'CHANNEL_CREATE':
         new ChannelCreate(this, packet).execute();
         break;
+
+      case 'CHANNEL_DELETE':
+        this.client.channels.delete(packet.d.id);
+        break;
     };
   }
 

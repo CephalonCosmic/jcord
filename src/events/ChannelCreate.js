@@ -11,6 +11,7 @@ class ChannelCreate {
 
   execute() {
     if (this.gateway.shardStatus !== 'ready') return;
+    this.packet.d.guild = this.gateway.client.guilds.get(this.packet.d.guild_id);
 
     switch(this.packet.d.type) {
       case 0: 

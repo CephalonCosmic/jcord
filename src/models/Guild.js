@@ -87,7 +87,7 @@ class Guild extends UnavailableGuild {
         }
 
         default: {
-          this.client.emit('DEBUG', 'Invalid Guild Channel type Received: ' + data.channels[i].type);
+          this.client.emit('debug', 'Invalid Guild Channel type Received: ' + data.channels[i].type);
           break;
         }
       };

@@ -1,3 +1,14 @@
+/**
+ * @class Represents a User
+ * @prop {String?} avatar The avatar hash of the user
+ * @prop {String} avatarURL The url of the user's avatar
+ * @prop {Boolean} bot Whether the user is a bot or not
+ * @prop {String} discriminator The discriminator of the user
+ * @prop {Snowflake} id The id of the user
+ * @prop {String} tag The tag of the user
+ * @prop {String} username The username of the user
+ */
+
 class User {
   constructor(client, data) {
     Object.defineProperty(this, 'client', { value: client });
