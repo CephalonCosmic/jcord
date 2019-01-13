@@ -6,6 +6,9 @@ const TextChannel = require('./TextChannel');
 const VoiceChannel = require('./VoiceChannel');
 const CategoryChannel = require('./CategoryChannel');
 const User = require('./User');
+const Member = require('./Member');
+const Role = require('./Role');
+const { ENDPOINTS } = require('../utils/Constants').HTTP;
 
 /**
  * @extends UnavailableGuild Represents an available guild on Discord
@@ -93,10 +96,14 @@ class Guild extends UnavailableGuild {
       };
     };
 
+    for (var i = 0; i < data.roles.length; i++) {
+      this.roles.set(data.roles[i].id, new Role(this.client, data.roles[i]));
+    };
+
     for (var i = 0; i < data.members.length; i++) {
       data.members[i].guild = this;
 
-      this.members.set(data.members[i].user.id, data.members[i]);
+      this.members.set(data.members[i].user.id, new Member(this.client, data.members[i]));
       this.client.users.set(data.members[i].user.id, new User(this.client, data.members[i].user));
     };
   }
@@ -111,6 +118,136 @@ class Guild extends UnavailableGuild {
 
   get systemChannel() {
     return this.systemChannelID ? this.channels.get(this.systemChannelID) : null;
+  }
+
+  /**
+   * Bans a member from the guild
+   * @param {Snowflake} user The id of the member to ban
+   * @param {Object} [options] Options for the guild ban
+   * @param {Number} [options.days=0] Number of days to delete messages for
+   * @param {String} [options.reason=''] Reasom for the ban
+   * @returns {Promise<User>}
+   */
+
+  ban(user, options = { days: 0, reason: '' }) {
+    return this.client.rest.request("PUT", `${ENDPOINTS.GUILD_BAN(this.id, user)}?delete-message-days=${options.days}&reason=${options.reason}`)
+    .then(() => {
+      return this.client.getUser(user);
+    });
+  }
+
+  /**
+   * Kicks a member from the guild
+   * @param {Snowflake} user The id of the member to kick
+   * @param {String} reason The reason for the kick
+   * @returns {Promise<User>}
+   */
+
+  kick(user, reason) {
+    return this.client.rest.request("DELETE", `${ENDPOINTS.GUILD_MEMBER(this.id, user)}?reason=${reason}`)
+    .then(() => {
+      return this.client.getUser(user);
+    });
+  }
+
+  /**
+   * Fetch all the guild channels using the REST API and sends an array of channels that were fetched from the cache
+   * @returns {Promise<TextChanne|VoiceChannel|CategoryChannel}
+   */
+
+  getChannels() {
+    return this.client.rest.request("GET", ENDPOINTS.GUILD_CHANNELS(this.id))
+    .then(res => {
+      return res.data.map(channel => {
+        return this.channels.get(channel.id);
+      });
+    });
+  }
+
+  /**
+   * Returns an array of guild invites
+   * @returns {Promise<Array<Invite>>}
+   */
+
+  getInvites() {
+    return this.client.rest.request("GET", ENDPOINTS.GUILD_INVITES(this.id))
+    .then(res => {
+      return res.data;
+    });
+  }
+
+  /**
+   * Fetches a guild member from the cache, if not present will use the REST API and set it inside the cache
+   * @param {Snowflake} user The id of the member
+   * @returns {Promise<Member>}
+   */
+
+  getMember(user) {
+    return this.client.rest.request("GET", ENDPOINTS.GUILD_MEMBER(this.id, user))
+    .then(res => {
+      if (!this.members.has(res.data.user.id)) {
+        return this.members.set(res.data.user.id, new Member(this.client, res.data));
+      } else {
+        return this.members.get(res.data.user.id);
+      }
+    });
+  }
+
+  /**
+   * Similiar to `Client#leaveGuild()`, makes the bot leave the current guild
+   * @returns {Promise<Guild>}
+   */
+
+  async leave() {
+    await this.client.leaveGuild(this.id);
+    
+    return Promise.resolve(this);
+  }
+
+  /**
+   * Edits a channel's position
+   * @param {Snowflake} channel The id of the channel to set the position of
+   * @param {Number} position The new position of the channel
+   * @returns {Promise<Channel>}
+   */
+
+  modifyChannelPosition(channel, position) {
+    return this.client.rest.request("PATCH", ENDPOINTS.GUILD_CHANNEL(this.id, channel), {
+      data: {
+        id: channel,
+        position
+      }
+    }).then(() => {
+      return this.channels.get(channel);
+    });
+  }
+
+  /**
+   * Softbans a member from the guild
+   * @param {Snowflake} user The id of the member to softban
+   * @param {String} reason The reason for the softban
+   * @returns {Promise<User>}
+   */
+
+  async softban(user, reason) {
+    this.ban(user, { days: 7, reason });
+    this.unban(user, reason);
+
+    return await this.client.getUser(user);
+  }
+
+  /**
+   * Unbans a member from the guild
+   * @param {Snowflake} user The id of the member to unban
+   * @param {String} reason The reason for the unban
+   * @returns {Promise<User>}
+   */
+
+  unban(user, reason) {
+    return this.client.rest.request("DELETE", `${ENDPOINTS.GUILD_BAN(this.id, user)}?reason=${reason}`)
+    .then(() => {
+      return this.client.getUser(user);
+    });
   }
 };
 

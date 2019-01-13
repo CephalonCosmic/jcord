@@ -6,6 +6,13 @@ const GuildCreate = require('../events/GuildCreate');
 const GuildMembersChunk = require('../events/GuildMembersChunk');
 const MessageCreate = require('../events/MessageCreate');
 const ChannelCreate = require('../events/ChannelCreate');
+const GuildMemberAdd = require('../events/GuildMemberAdd');
+const GuildMemberUpdate = require('../events/GuildMemberUpdate');
+const GuildMemberRemove = require('../events/GuildMemberRemove');
+const PresenceUpdate = require('../events/PresenceUpdate');
+const RoleCreate = require('../events/RoleCreate');
+const RoleDelete = require('../events/RoleDelete');
+const RoleUpdate = require('../events/RoleUpdate');
 
 class Shard {
   constructor(client, shard) {
@@ -31,7 +38,7 @@ class Shard {
     switch(packet.t) {
       case 'READY':
         if (!packet.d.guilds.length) {
-          return new Ready(this, packet).execute();
+          new Ready(this, packet).execute();
         };
 
         new Ready(this, packet);
@@ -55,6 +62,34 @@ class Shard {
 
       case 'CHANNEL_DELETE':
         this.client.channels.delete(packet.d.id);
+        break;
+
+      case 'GUILD_MEMBER_ADD':
+        new GuildMemberAdd(this, packet).execute();
+        break;
+      
+      case 'GUILD_MEMBER_UPDATE':
+        new GuildMemberUpdate(this, packet).execute();
+        break;
+
+      case 'GUILD_MEMBER_REMOVE':
+        new GuildMemberRemove(this, packet).execute();
+        break;
+
+      case 'PRESENCE_UPDATE':
+        new PresenceUpdate(this, packet).execute();
+        break;
+
+      case 'GUILD_ROLE_CREATE':
+        new RoleCreate(this, packet).execute();
+        break;
+
+      case 'GUILD_ROLE_DELETE':
+        new RoleDelete(this, packet).execute();
+        break;
+
+      case 'GUILD_ROLE_UPDATE':
+        new RoleUpdate(this, packet).execute();
         break;
     };
   }

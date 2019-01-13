@@ -52,7 +52,7 @@ class Client extends EventEmitter {
 
   getUser(user) {
     if (!this.users.has(user)) {
-      return this.rest.request("GET", ENDPOINTS.USER(this.id))
+      return this.rest.request("GET", ENDPOINTS.USER(user))
       .then(res => {
         return this.users.set(res.data.id, new User(this, res.data));
       });
@@ -60,8 +60,21 @@ class Client extends EventEmitter {
       return new Promise((resolve, reject) => {
         return resolve(this.users.get(user));
       });
-    }
-  };
+    };
+  }
+
+  /**
+   * Makes the bot leave the guild
+   * @param {Snowflake} guild The id of the guild
+   * @returns {Promise<Boolean>} Will return true if it's a success
+   */
+
+  leaveGuild(guild) {
+    return this.rest.request("DELETE", ENDPOINTS.GUILD(guild))
+    .then(() => {
+      return true;
+    });
+  }
 
   /**
    * This will start connecting to the gateway using the given bot token

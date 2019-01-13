@@ -3,7 +3,7 @@ const { HTTP } = require('../utils/Constants');
 
 class RequestHandler {
   constructor(client) {
-      this.client = client;
+    this.client = client;
   }
 
   /**

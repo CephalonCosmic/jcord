@@ -30,9 +30,10 @@ module.exports = {
       CHANNEL_WEBHOOKS: (channelID) => `/channels/${channelID}/webhooks`,
 
       /* Guild */
-      GUILDS: (guildID) => `/guilds/${guildID}`,
+      GUILD: (guildID) => `/guilds/${guildID}`,
       GUILD_BAN: (guildID, userID) => `/guilds/${guildID}/bans/${userID}`,
       GUILD_BANS: (guildID) => `/guilds/${guildID}/bans`,
+      GUILD_CHANNEL: (guildID, channelID) => `/guilds/${guildID}/channels/${channelID}`,
       GUILD_CHANNELS: (guildID) => `/guilds/${guildID}/channels`,
       GUILD_INVITES: (guildID) => `/guilds/${guildID}/invites`,
       GUILD_MEMBER: (guildID, userID) => `/guilds/${guildID}/members/${userID}`,

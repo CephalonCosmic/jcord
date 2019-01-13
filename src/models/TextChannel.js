@@ -139,9 +139,9 @@ class TextChannel extends GuildChannel {
       return res.data.map(message => {
         if (this.client.storeMessages) {
           if (!this.messages.has(message.id)) {
-            this.messages.set(message.id, new Message(this.client, message));
+            return this.messages.set(message.id, new Message(this.client, message));
           } else {
-            this.messages.get(message.id);
+            return this.messages.get(message.id);
           };
         } else {
           return new Message(this.client, message);
