@@ -1,4 +1,5 @@
 module.exports = {
   Client: require('./client/Client'),
-  CommandCreator: require('./command/Creator')
+  CommandCreator: require('./command/Creator'),
+  Store: require('./utils/Store')
 };
