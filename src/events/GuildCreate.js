@@ -29,10 +29,11 @@ class Ready {
       if (!this.gateway.client.getAllMembers) {
         this.gateway.shardStatus = 'ready';
         this.gateway.client.emit('SHARD_READY', this.packet.d.shard);
+        this.gateway.client.shards.set(this.packet.d.shard.id, this.packet.d.shard);
         this.gateway.client.connectedShards.push(this.gateway.shard);
       };
 
-      if (this.gateway.status !== 'ready' && !this.gateway.client.getAllMembers && this.gateway.client.connectedShards.length === this.gateway.client.shards) {
+      if (this.gateway.status !== 'ready' && !this.gateway.client.getAllMembers && this.gateway.client.connectedShards.length === this.gateway.client.shardCount) {
         this.gateway.client.startTime = Date.now();
         this.gateway.status = 'ready';
         this.gateway.client.emit('READY');

@@ -1,5 +1,6 @@
 "use strict";
 
+const BannedUser = require('./BannedUser');
 const Store = require('../utils/Store');
 const UnavailableGuild = require('./UnavailableGuild');
 const TextChannel = require('./TextChannel');
@@ -112,6 +113,16 @@ class Guild extends UnavailableGuild {
     return this.afkChannelID ? this.channels.get(this.afkChannelID) : null;
   }
 
+  get bans() {
+    return (async () => {
+      return await this.client.rest.request("GET", ENDPOINTS.GUILD_BANS(this.id)).data;
+  })();
+}
+
+  get bot() {
+    return this.members.get(this.client.user.id);
+  }
+
   get owner() {
     return this.ownerID ? this.members.get(this.ownerID) : null;
   }
@@ -133,6 +144,76 @@ class Guild extends UnavailableGuild {
     return this.client.rest.request("PUT", `${ENDPOINTS.GUILD_BAN(this.id, user)}?delete-message-days=${options.days}&reason=${options.reason}`)
     .then(() => {
       return this.client.getUser(user);
+    });
+  }
+
+  /**
+   * Begins a prune operation. Returns an object with one 'pruned' key indicating the number of members that would be removed in a prune operation.
+   * @param {Number} days Number of days to count prune for (1 or more)
+   * @returns {Promise<Object>}
+   */
+
+  beginPrune(days) {
+    return this.client.rest.request("POST", ENDPOINTS.GUILD_PRUNE(this.id), {
+      data: {
+        days
+      }
+    }).then(res => {
+      return res.data;
+    });
+  }
+
+  /**
+   * Deletes a guild
+   * @returns {Promise<Guild>}
+   */
+
+  delete() {
+    return this.client.rest.request("DELETE", ENDPOINTS.GUILD(this.id))
+    .then(() => {
+      return this;
+    });
+  }
+
+  /**
+   * Deletes a role from the guild
+   * @param {Snowflake} role The id of the role to delete
+   * @returns {Promise<Role>}
+   */
+
+  deleteRole(role) {
+    let Role = this.roles.get(role);
+
+    return this.client.rest.request("DELETE", ENDPOINTS.GUILD_ROLE(this.id, role))
+    .then(() => {
+      return Role;
+    });
+  }
+
+  /**
+   * Gets information about the banned user id
+   * @param {Snowflake} user The id of the banned user
+   * @returns {Promise<BannedUser>}
+   */
+
+  getBan(user) {
+    return this.client.rest.request("GET", ENDPOINTS.GUILD_BAN(this.guild, user))
+    .then(res => {
+      return new BannedUser(this.client, res.data);
+    });
+  }
+
+  /**
+   * Returns an array of banned users
+   * @returns {Promise<Array<BannedUsers>>}
+   */
+
+  getBans() {
+    return this.client.rest.request("GET", ENDPOINTS.GUILD_BANS(this.guild))
+    .then(res => {
+      return res.data.map(data => {
+        return new BannedUser(this.client, data);
+      });
     });
   }
 
@@ -194,6 +275,20 @@ class Guild extends UnavailableGuild {
   }
 
   /**
+   * Gives a member a role
+   * @param {Snowflake} user The id of the member to give the role
+   * @param {Snowflake} role The role to give to the member
+   * @returns {Promise<Member>}
+   */
+
+  giveRole(user, role) {
+    return this.client.rest.request("PUT", ENDPOINTS.GUILD_MEMBER_ROLE(this.id, user, role))
+    .then(() => {
+      return this.members.get(user);
+    });
+  }
+
+  /**
    * Similiar to `Client#leaveGuild()`, makes the bot leave the current guild
    * @returns {Promise<Guild>}
    */
@@ -202,6 +297,63 @@ class Guild extends UnavailableGuild {
     await this.client.leaveGuild(this.id);
     
     return Promise.resolve(this);
+  }
+
+  /**
+   * Creates a Guild Channel
+   * Guild Channel types:
+   * * `text` - Text Channel
+   * * `voice` - Voice Channel
+   * * `category` - Category Channel
+   * @param {String} name The name of the channel
+   * @param {String} [type='text'] The type of the channel
+   * @returns {Promise<TextChannel|VoiceChannel|CategoryChannel>}
+   */
+
+  makeChannel(name, type = 'text') {
+    let types = ['text', 'voice', 'category'];
+
+    if (typeof type !== 'string' || typeof type === 'string' && !types.includes(type.toLowerCase()))
+      return this.client.emit('error', new Error('Invalid Channel type!'));
+
+    type = type.toLowerCase();
+
+    if (type === 'text') {
+      type = 0;
+    } else if (type === 'voice') {
+      type = 2;
+    } else if (type === 'category') {
+      type = 4;
+    }
+
+    return this.client.rest.request("POST", ENDPOINTS.GUILD_CHANNELS(this.id), {
+      data: {
+        name,
+        type
+      }
+    }).then(res => {
+      return this.channels.get(res.data.id);
+    });
+  }
+
+  /**
+   * Creates a guild role
+   * @param {String} name The name of the role
+   * @param {Boolean} [isHoisted=false] Whether the role should be seperate from the `@everyone` role
+   * @param {Boolean} [isMentionable=false] Whther the role should be mentionable
+   * @returns {Promise<Role>}
+   */
+
+  makeRole(name, isHoisted = false, isMentionable = false) {
+    return this.client.rest.request("POST", ENDPOINTS.GUILD_ROLES(this.id), {
+      data: {
+        name,
+        hoist: isHoisted,
+        mentionable: isMentionable
+      }
+    }).then(res => {
+      return this.roles.get(res.data.id);
+    });
   }
 
   /**
@@ -219,6 +371,94 @@ class Guild extends UnavailableGuild {
       }
     }).then(() => {
       return this.channels.get(channel);
+    });
+  }
+
+  /**
+   * Edits a guild role
+   * @param {Snowflake} role The id of the role to edit
+   * @param {Object} [options] The options for the role
+   * @param {String} [options.name] The new name of the role
+   * @param {Number} [options.color] The color of the role in RGB Form. e.g `(1, 1, 1)`
+   * @param {Boolean} [options.isHoisted=false] Whether the role should be displayed separately in the sidebar
+   * @param {Boolean} [options.isMentionable=false] Whether the role is mentionable
+   * @returns {Promise<Role>}
+   */
+
+  modifyRole(role, options = {}) {
+    return this.client.rest.request("PATCH", ENDPOINTS.GUILD_ROLE(this.id, role), {
+      data: {
+        name: options.name,
+        color: options.color,
+        hoist: options.isHoisted || false,
+        mentionable: options.isMentionable || false
+      }
+    }).then(() => {
+      return this.roles.get(role);
+    });
+  }
+
+  /**
+   * Returns an object with one 'pruned' key indicating the number of members that would be removed in a prune operation.
+   * @param {Number} days Number of days to count prune for (1 or more)
+   * @returns {Promise<Object>}
+   */
+
+  pruneCount(days) {
+    return this.client.rest.request("GET", ENDPOINTS.GUILD_PRUNE(this.id), {
+      data: {
+        days
+      }
+    }).then(res => {
+      return res.data;
+    });
+  }
+
+  /**
+   * Removes a role from a member
+   * @param {Snowflake} user The id of the user to remove the role from
+   * @param {Snowflake} role The id of the role to remove
+   * @returns {Promise<Member>}
+   */
+
+  removeRole(user, role) {
+    return this.client.rest.request("DELTE", ENDPOINTS.GUILD_MEMBER_ROLE(this.id, user, role))
+    .then(() => {
+      return this.members.get(user);
+    });
+  }
+
+  /**
+   * Edits a channel position
+   * @param {Snowflake} channel The id of the guild channel
+   * @param {Number} position The new position of the channel
+   * @returns {Promise<TextChannel|VoiceChannel|GuildChannel>}
+   */
+
+  setChannelPosition(channel, position) {
+    return this.client.rest.request("PATCH", ENDPOINTS.GUILD_CHANNELS(this.id), {
+      data: {
+        id: channel,
+        position
+      }
+    }).then(() => {
+      return this.channels.get(channel);
+    });
+  }
+
+  /**
+   * Sets the nickname of the client
+   * @param {String} nick The new nickname for the bot
+   * @returns {Promise<Member>}
+   */
+
+  setOwnNick(nick) {
+    return this.client.rest.request("PATCH", ENDPOINTS.GUILD_MEMBER_NICK(this.id, '@me'), {
+      data: {
+        nick
+      }
+    }).then(() => {
+      return this.bot;
     });
   }
 

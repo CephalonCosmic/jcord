@@ -1,3 +1,5 @@
+const { ENDPOINTS } = require('../utils/Constants').HTTP;
+
 /**
  * @class Represents a User
  * @prop {String?} avatar The avatar hash of the user
@@ -20,6 +22,39 @@ class User {
     this.id = data.id;
     this.tag = `${data.username}#${this.discriminator}`;
     this.username = data.username;
+  }
+
+  /**
+   * Similar to `Client#createDM()`
+   * @returns {Promise<DMChannel>}
+   */
+
+  createDM() {
+    return this.client.createDM(this.id);
+  }
+
+  /**
+   * Sends an embed to the user
+   * @param {Object} embed The embed to send
+   * @returns {Promise<Message>}
+   */
+
+  async createEmbed(embed) {
+    let channel = await this.createDM();
+
+    return this.client.createEmbed(channel.id, embed);
+  }
+
+  /**
+   * Sends a message to the user
+   * @param {String} content The content of the message
+   * @returns {Promise<Message>}
+   */
+
+  async createMessage(content) {
+    let channel = await this.createDM();
+
+    return this.client.createMessage(channel.id, content);
   }
 
   toString() {

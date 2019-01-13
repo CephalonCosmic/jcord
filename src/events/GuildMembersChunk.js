@@ -24,9 +24,10 @@ class Ready {
     if (this.gateway.totalMemberCountOfGuildMemberChunk === this.gateway.totalMemberCount && this.gateway.status !== 'ready') {
       this.gateway.client.emit('SHARD_READY', this.gateway.shardData);
       this.gateway.client.connectedShards.push(this.gateway.shard);
+      this.gateway.client.shards.set(this.packet.d.shard.id, this.packet.d.shard);
       this.gateway.shardStatus = 'ready';
 
-      if (this.gateway.client.connectedShards.length === this.gateway.client.shards) {
+      if (this.gateway.client.connectedShards.length === this.gateway.client.shardCount) {
         this.gateway.client.startTime = Date.now();
         this.gateway.client.emit('READY')
         this.gateway.status = 'ready';

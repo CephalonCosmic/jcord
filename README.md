@@ -7,7 +7,7 @@ This repo was made to continue the outdated repo of [jcord](https://github.com/B
 ## Documentation
 Currently no Documentation for this version!
 
-## Expected Usage
+## Examples
 ```js
 const JCord = require('jcord');
 
@@ -18,7 +18,7 @@ class MyBot extends JCord.Client {
   }
 };
 
-const client = new MyBot({ shards: 'auto' });
+const client = new MyBot({ shardCount: 'auto' });
 
 client.on('SHARD_READY', (shard) => console.log(`Shard ${shard.id} has been loaded and ready to receive other events.`));
 
@@ -36,16 +36,22 @@ client.on('MESSAGE_CREATE', (msg) => {
     return msg.channel.createMessage(`Pong! Shard: ${msg.channel.guild.shard.id} Took \`${msg.channel.guild.shard.latency}ms\``);
   } else if (cmd === 'uptime') {
     return msg.channel.createMessage(`My current uptime in ms: \`${client.uptime}ms\``);
+  } else if (cmd === 'shardstats') {
+    msg.channel.createMessage(`
+\`\`\`
+Current Shard: ${msg.channel.guild.shard.id}/${client.shardCount - 1}
+${client.shards.map(shard => `Shard: ${shard.id} | Latency: ${shard.latency}ms`).join('\n')}
+\`\`\``);
   }
 });
 
-client.start('BOT TOKEN');
+client.initiate('BOT TOKEN');
 ```  
 
 **HERE IS AN EXAMPLE OF THE COMMAND CREATOR**  
 ```js
 const { CommandCreator } = require('jcord');
-const client = new CommandCreator({ prefix: '!' });
+const client = new CommandCreator({ shardCount: 'auto', defaultPrefix: '!' });
 
 // We can register the commands on each shard so that we are sure it is being loaded/overwritten every time a shard is complete. You can also make this load without waiting for every shard to be finished by moving the code outside of the "SHARD_READY" event
 
@@ -73,7 +79,7 @@ client.on('SHARD_READY', () => {
 
 client.on('READY', () => console.log(`Client is now logged in! (${client.user.tag} - ${client.user.id})`));
 
-client.start('My Bot Token');
+client.initiate('My Bot Token');
 ```
 
 ## To-Do List
@@ -81,14 +87,15 @@ client.start('My Bot Token');
 - [x] Add Sharding Support ( Still needs more testing )  
 - [x] Add shard latency support
 - [ ] Finish all methods  
-- [x] Simple bot creator, **not complete but usable**
+- [x] Simple bot creator
+- [ ] Voice **soon**
 
 ## Problems
-- Caching Problems ( Sometimes )  
+- ~~Caching Problems ( Sometimes )~~ We're testing the library if we still have the probem  
 - Slow login ( Due to the delay )  
 
 ## Notes
-- About the Command Creator feature, we're using cache to create commands, but for the guild prefix, you need the package `depo` installed. If you guys have a much better suggestion for the "database", please open an issue. We need one that is easy to install, create. **YOU NEED TO INSTALL THE MASTER VERSION OF DEPO AND NOT THE STABLE ONE, TO INSTALL THE MASTER VERSION, TYPE `npm install boltxyz/depo`**
+- About the Command Creator feature, we're using cache to create commands, but for the guild prefix, you need the package `depo` installed. If you guys have a much better suggestion for the "database", please open an issue. We need one that is easy to install, create.
 
 - Sharding is implemented, but might still have issues. We also give a 6.5 Second Delay for shard, meaning Once shard 0 is sent, we will do a timeout of 6.5 seconds before sending a new shard. If the shard fails the connect, it will try to login once more with a delay of 2.5 seconds.  
 
@@ -96,6 +103,21 @@ client.start('My Bot Token');
 
 - `Client#fetchAllMembers`, if true will take longer to login. It's because it's actually requesting **ALL** Guild Members the bot is connected to, whether it's offline or not. Meaning **all** members will be cached, this is a good fix for the caching problem.  
 
-- If you're wondering, "If i use sharding, does the DMs count?". And the answer is yes, DMs are part of the shards, but it is only sent on the first shard, a.k.a Shard 0  
+- If you're wandering, "If i use sharding, does the DMs count?". And the answer is yes, DMs are part of the shards, but it is only sent on the first shard, a.k.a Shard 0  
 
 - If your shard amount is more than your bot's guild amount, it will have errors. We suggest using "auto" as the shard parameters, so it we will use the Recommended Shard amount from Discord.
+
+## Breaking Changes
+- For adding shards, please use `shardCount` instead of `shards`. `shards` Represents a Store of Shards instead. Example:  
+```js
+const JCord = require('jcord');
+const client = new Jcord.Client({ shardCount: 2 });
+```  
+
+- For the Command Creator default prefix, please use `defaultPrefix` instead of `prefix`. Example:  
+```js
+const JCord = require('jcord');
+const client = new Jcord.CommandCreator({ shardCount: 'auto', defautPrefix: '!' });
+```  
+
+- We have deprecated `Client#start()`, please use `Client#initiate()`. `Client#start()` can still be used but will show a **deprecation** warning!

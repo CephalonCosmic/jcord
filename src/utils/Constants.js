@@ -30,7 +30,9 @@ module.exports = {
       CHANNEL_WEBHOOKS: (channelID) => `/channels/${channelID}/webhooks`,
 
       /* Guild */
+      GUILDS: `/guilds`,
       GUILD: (guildID) => `/guilds/${guildID}`,
+      GUILD_MEMBER_NICK: (guildID, userID) => `/guilds/${guildID}/members/${userID}/nick`,
       GUILD_BAN: (guildID, userID) => `/guilds/${guildID}/bans/${userID}`,
       GUILD_BANS: (guildID) => `/guilds/${guildID}/bans`,
       GUILD_CHANNEL: (guildID, channelID) => `/guilds/${guildID}/channels/${channelID}`,
@@ -40,6 +42,7 @@ module.exports = {
       GUILD_MEMBERS: (guildID) => `/guilds/${guildID}/members`,
       GUILD_REGIONS: (guildID) => `/guilds/${guildID}/regions`,
       GUILD_PRUNE: (guildID) => `/guilds/${guildID}/prune`,
+      GUILD_ROLES: (guildID) => `/guilds/${guildID}/roles/`,
       GUILD_ROLE: (guildID, roleID) => `/guilds/${guildID}/roles/${roleID}`,
       GUILD_MEMBER_ROLE: (guildID, userID, roleID) => `/guilds/${guildID}/members/${userID}/roles/${roleID}`
     }

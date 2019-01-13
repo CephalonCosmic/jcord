@@ -126,7 +126,7 @@ class Shard {
                     $browser: 'JCord',
                     $device: os.type() === 'Windows_NT' ? 'Windows' : os.type()
                   },
-                  shard: [this.shard, this.client.shards]
+                  shard: [this.shard, this.client.shardCount]
                 }
               });  
             }, 2500)
@@ -148,7 +148,7 @@ class Shard {
           $browser: 'jcord',
           $device: 'jcord'
         },
-        shard: [this.shard, this.client.shards]
+        shard: [this.shard, this.client.shardCount]
       }
     });  
     

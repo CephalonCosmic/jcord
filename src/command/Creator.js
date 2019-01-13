@@ -7,7 +7,7 @@ class CommandCreator extends Client {
 
     this.showWarnings = options.showWarnings || true;
     this._commands = new Store();
-    this.prefix = options.prefix || '!';
+    this.defaultPrefix = options.defaultPrefix || '!';
     this.owners = options.owners || [];
     this.customPrefix = options.customPrefix || false;
 
@@ -32,7 +32,7 @@ Note: Please install the master version by doing:
     
     this.on('MESSAGE_CREATE', async (msg) => {
       if (depo && msg.channel.guild && !await this.db.has(msg.channel.guild.id)) {
-      await this.db.set(msg.channel.guild.id, { prefix: this.prefix });
+      await this.db.set(msg.channel.guild.id, { prefix: this.defaultPrefix });
       }
 
       let settings = await this.db.get(msg.channel.guild.id);

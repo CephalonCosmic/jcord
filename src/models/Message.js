@@ -1,5 +1,20 @@
 /**
- * @class Represents a Message
+ * @class Represents a Discord Message
+ * @prop {Array} attachments An array of message attachments
+ * @prop {Object?} author The message author
+ * @prop {Object} channel The channel the message was sent in
+ * @prop {String} content The content of the message
+ * @prop {Number?} createdTimestamp The time the message was created in ms
+ * @prop {Number?} editedTimestamp The time the message was edited in ms
+ * @prop {Array} embeds An array of message embeds
+ * @prop {Snowflake} id The id of the message
+ * @prop {Object?} member The user in member form
+ * @prop {Boolean} mentionedEveryone Whether the content has the `@everyone` ping or `@here`
+ * @prop {Array} roleMentions An array of role mentions
+ * @prop {Array} mentions An array of user mentions
+ * @prop {Boolean} pinned Whether the message is pinned
+ * @prop {Boolean} tts Whether the message is tts (text-to-speach)
+ * @prop {Number} type The type of the message
  */
 
 class Message {

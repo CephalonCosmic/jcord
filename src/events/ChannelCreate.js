@@ -11,9 +11,11 @@ class ChannelCreate {
 
   execute() {
     this.packet.d.guild = this.gateway.client.guilds.get(this.packet.d.guild_id);
+    let guild = this.packet.d.guild;
 
     switch(this.packet.d.type) {
       case 0: 
+        guild.channels.set(this.packet.d.id, new TextChannel(this.gateway.client, this.packet.d));
         this.gateway.client.channels.set(this.packet.d.id, new TextChannel(this.gateway.client, this.packet.d));
         break;
 
@@ -22,10 +24,12 @@ class ChannelCreate {
         break;
 
       case 2:
+        guild.channels.set(this.packet.d.id, new VoiceChannel(this.gateway.client, this.packet.d));
         this.gateway.client.channels.set(this.packet.d.id, new VoiceChannel(this.gateway.client, this.packet.d));
         break;
 
       case 4:
+        guild.channels.set(this.packet.d.id, new CategoryChannel(this.gateway.client, this.packet.d));
         this.gateway.client.channels.set(this.packet.d.id, new CategoryChannel(this.gateway.client, this.packet.d));
         break;
     };

@@ -3,7 +3,6 @@
 const Message = require('../models/Message');
 const GuildChannel = require('./GuildChannel');
 const { ENDPOINTS } = require('../utils/Constants').HTTP;
-const { PERMISSIONS } = require('../utils/Constants');
 const Store = require('../utils/Store');
 
 /**
@@ -36,35 +35,24 @@ class TextChannel extends GuildChannel {
   }
 
   /**
-   * Creates a message embed to the channel
-   * @param {String} embed The embed to send
+   * Creates an embed to the channel
+   * @param {Object} embed The embed to send
    * @returns {Promise<Message>}
    */
 
   createEmbed(embed) {
-    return this.client.rest.request("POST", ENDPOINTS.CHANNEL_MESSAGES(this.id), {
-      data: {
-        embed: embed.hasOwnProperty('embed') ? embed.embed : embed
-      }
-    }).then(res => {
-      return new Message(this.client, res.data);
-    });
+    return this.client.createEmbed(this.id, embed);
   }
 
   /**
+   * Similar to `Client#createMessage()`
    * Creates a message to the channel
    * @param {String} content The content of the message
    * @returns {Promise<Message>}
    */
 
   createMessage(content) {
-    return this.client.rest.request("POST", ENDPOINTS.CHANNEL_MESSAGES(this.id), {
-      data: {
-        content
-      }
-    }).then(res => {
-      return new Message(this.client, res.data);
-    });
+    return this.client.createMessage(this.id, content);
   }
 
   /**
