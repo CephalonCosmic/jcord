@@ -25,7 +25,7 @@ const Message = require('../models/Message');
 class Client extends EventEmitter {
   constructor(options = {}) {
     super(options);
-    this.shardCount = options.shards || 1;
+    this.shardCount = options.shardCount || 1;
     this.firstShardSent = false;
     this.getAllMembers = options.getAllMembers || false;
     this.storeMessages = options.storeMessages || false;
