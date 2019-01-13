@@ -8,8 +8,6 @@ This repo was made to continue the outdated repo of [jcord](https://github.com/B
 Currently no Documentation for this version!
 
 ## Expected Usage
-**WARNING: THIS USAGE ONLY WORKS FOR THIS JCORD AND NOT THE NON-UPDATED ONE!**
-
 ```js
 const JCord = require('jcord');
 
