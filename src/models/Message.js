@@ -1,4 +1,6 @@
-const Member = require('./Member');
+/**
+ * @class Represents a Message
+ */
 
 class Message {
   constructor(client, data) {
@@ -15,8 +17,10 @@ class Message {
     this.embeds = data.embeds;
     this.id = data.id;
     this.mentionedEveryone = data.mention_everyone;
+    this.mentions = data.mentions.map(user => {
+      return this.client.users.get(user.id);
+    });
     Object.defineProperty(this, '_mentionRoles', { value: data.mention_roles });
-    this.rolesMentions = 
     this.pinned = data.pinned;
     this.tts = data.tts;
     this.type = data.type;
